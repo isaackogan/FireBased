@@ -96,4 +96,7 @@ class RegisterGcmRequestBody(BaseModel):
 
 
 class RegisterGcmRequestResponse(BaseModel):
-    token: str
+
+    # Either error is token is populated
+    token: str | None = None
+    error: str | None = None
