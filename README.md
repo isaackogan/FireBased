@@ -35,8 +35,6 @@ from FireBased.client.proto import CheckInRequestMessage, CheckInResponseMessage
 from FireBased.client.schemas import RegisterInstallRequestBody, RegisterInstallRequestBodyJsonBody, RegisterGcmRequestBody, FirebaseInstallationRequestResponse, RegisterGcmRequestResponse
 from FireBased.ext.synthetic_data import create_synthetic_check_in, create_mobile_user_agent
 
-client = FireBasedClient()
-
 google_api_key = "AIzaSyA1b2C3dE4f5G6H7I8J9K0LmNOpQrStUvWx"  # Firebase API key
 google_app_id = "1:123456789012:android:abcdefghijklm1234567"  # Firebase app ID
 google_app_package = "com.example.app"  # Package name of the Android app
@@ -45,37 +43,39 @@ google_android_cert = "12345678A1B2C3D4E5F6G7H8I9J0KLMNOPQRSTU"  # Sha-1 APK sig
 
 
 async def generate_gcm_token() -> str:
-    # Create a synthetic check-in payload.
-    # Note that according to ChatGPT, developers can't access the data you send here.
-    # All they can really check is the Firebase ID, GCM token, and the Android ID.
-    check_in_payload: CheckInRequestMessage = create_synthetic_check_in()
-    check_in_response: CheckInResponseMessage = await client.check_in(body=check_in_payload)
+    # Starts an HTTP client under the hood. Best to use in an async context manager for safety.
+    async with FireBasedClient() as fb:
+        # Create a synthetic check-in payload.
+        # Note that according to ChatGPT, developers can't access the data you send here.
+        # All they can really check is the Firebase ID, GCM token, and the Android ID.
+        check_in_payload: CheckInRequestMessage = create_synthetic_check_in()
+        check_in_response: CheckInResponseMessage = await fb.check_in(body=check_in_payload)
 
-    # Create the installation registration payload
-    register_install_payload: RegisterInstallRequestBody = RegisterInstallRequestBody(
-        app_public_key=google_api_key,
-        app_package=google_app_package,
-        app_name=google_app_name,
-        json_body=RegisterInstallRequestBodyJsonBody(appId=google_app_id),
-        user_agent=create_mobile_user_agent(),
-        app_cert=google_android_cert
-    )
-
-    # Register the installation
-    install_data: FirebaseInstallationRequestResponse = await client.register_install(
-        body=register_install_payload
-    )
-
-    # Finally, register the GCM token using the data from the previous requests
-    gcm_response: RegisterGcmRequestResponse = await client.register_gcm(
-        body=RegisterGcmRequestBody.from_models(
-            install_request_body=register_install_payload,
-            install_request_response=install_data,
-            check_in_request_response=check_in_response
+        # Create the installation registration payload
+        register_install_payload: RegisterInstallRequestBody = RegisterInstallRequestBody(
+            app_public_key=google_api_key,
+            app_package=google_app_package,
+            app_name=google_app_name,
+            json_body=RegisterInstallRequestBodyJsonBody(appId=google_app_id),
+            user_agent=create_mobile_user_agent(),
+            app_cert=google_android_cert
         )
-    )
 
-    return gcm_response.token
+        # Register the installation
+        install_data: FirebaseInstallationRequestResponse = await fb.register_install(
+            body=register_install_payload
+        )
+
+        # Finally, register the GCM token using the data from the previous requests
+        gcm_response: RegisterGcmRequestResponse = await fb.register_gcm(
+            body=RegisterGcmRequestBody.from_models(
+                install_request_body=register_install_payload,
+                install_request_response=install_data,
+                check_in_request_response=check_in_response
+            )
+        )
+
+        return gcm_response.token
 
 
 if __name__ == '__main__':
