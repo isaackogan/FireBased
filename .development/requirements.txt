@@ -1,0 +1,4 @@
+setuptools
+betterproto[compiler]==2.0.0b7
+python-dotenv
+twine

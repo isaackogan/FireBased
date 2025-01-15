@@ -1,0 +1,1 @@
+protoc -I. --python_betterproto_out=. firebase.proto

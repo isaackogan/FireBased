@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+message CheckInRequestMessage {
+
+    message CheckIn {
+
+        message Build {
+
+            string fingerprint = 1;
+            string hardware = 2;
+            string brand = 3;
+            string radio = 4;
+            string bootloader = 5;
+            string client_id = 6;
+            int64 time = 7;
+            int32 package_version_code = 8;
+            string device = 9;
+            int32 sdk_version = 10;
+            string model = 11;
+            string manufacturer = 12;
+            string product = 13;
+            bool ota_installed = 14;
+
+        }
+
+        message Event {
+            string tag = 1;
+            string value = 2;
+            int64 time_ms = 3;
+
+        }
+
+        message Statistic {
+            string tag = 1;
+            int32 count = 2;
+            float sum = 3;
+        }
+
+        Build build = 1;
+        int64 last_checkin_ms = 2;
+        repeated Statistic stat = 4;
+        repeated string requested_group = 5;
+        string cell_operator = 6;
+        string sim_operator = 7;
+        string roaming = 8;
+        int32 user_number = 9;
+
+    }
+
+
+
+    message DeviceConfig {
+        int32 touch_screen = 1;
+        int32 keyboard_type = 2;
+        int32 navigation = 3;
+        int32 screen_layout = 4;
+        bool has_hard_keyboard = 5;
+        bool has_five_way_navigation = 6;
+        int32 density_dpi = 7;
+        int32 gl_es_version = 8;
+        repeated string shared_library = 9;
+        repeated string available_feature = 10;
+        repeated string native_platform = 11;
+        int32 width_pixels = 12;
+        int32 height_pixels = 13;
+        repeated string locale = 14;
+        repeated string gl_extension = 15;
+        int32 device_class = 16;
+        int32 max_apk_download_size_mb = 17;
+    }
+
+    string imei = 1;
+    int64 android_id = 2;
+    string digest = 3;
+    CheckIn checkin = 4;
+    string desired_build = 5;
+    string locale = 6;
+    int64 logging_id = 7;
+    string market_checkin = 8;
+    repeated string mac_address = 9;
+    string meid = 10;
+    repeated string account_cookie = 11;
+    string time_zone = 12;
+    fixed64 security_token = 13;
+    int32 version = 14;
+    repeated string ota_cert = 15;
+    string serial = 16;
+    string esn = 17;
+    DeviceConfig device_configuration = 18;
+    repeated string mac_address_type = 19;
+    int32 fragment = 20;
+    string user_name = 21;
+    int32 user_serial_number = 22;
+
+}
+
+
+message CheckInResponseMessage {
+
+    message Intent {
+        message Extra {
+            string name = 6;
+            string value = 7;
+        }
+
+        string action = 1;
+        string data_uri = 2;
+        string mime_type = 3;
+        string java_class = 4;
+        repeated Extra extra = 5;
+    }
+
+    message GServicesSetting {
+        bytes name = 1;
+        bytes value = 2;
+    }
+
+    bool stats_ok = 1;
+    repeated Intent intent = 2;
+    int64 time_ms = 3;
+    string digest = 4;
+    repeated GServicesSetting setting = 5;
+    bool market_ok = 6;
+    fixed64 android_id = 7;
+    fixed64 security_token = 8;
+    bool settings_diff = 9;
+    repeated string delete_setting = 10;
+    string version_info = 11;
+    string device_data_version_info = 12;
+}
+
+
