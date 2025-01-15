@@ -19,6 +19,12 @@ class FireBasedClient:
             **(httpx_kwargs or dict())
         )
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self._httpx.aclose()
+
     @property
     def client(self) -> httpx.AsyncClient:
         """HTTP Client instance"""
