@@ -1,3 +1,5 @@
 test.py
 *.env
 .idea
+dist
+*.egg-info
