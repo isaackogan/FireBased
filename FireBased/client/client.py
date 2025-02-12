@@ -12,10 +12,12 @@ class FireBasedClient:
 
     def __init__(
             self,
-            curl_cffi_kwargs: dict[str, str] = None
+            curl_cffi_kwargs: dict[str, str] = None,
+            curl_cffi_client: curl_cffi.requests.AsyncSession = None
     ):
         curl_cffi_kwargs = curl_cffi_kwargs or dict()
-        self._http_client = curl_cffi.requests.AsyncSession(
+        self._provided_client: bool = bool(curl_cffi_client)
+        self._http_client = curl_cffi_client or curl_cffi.requests.AsyncSession(
             verify=False,
             ja3=curl_cffi_kwargs.pop('ja3', FireBasedSettings.http_client_ja3),
             **(curl_cffi_kwargs or dict())
@@ -25,7 +27,8 @@ class FireBasedClient:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self._http_client.close()
+        if not self._provided_client:
+            await self._http_client.close()
 
     @property
     def client(self) -> curl_cffi.requests.AsyncSession:
@@ -84,11 +87,6 @@ class FireBasedClient:
             "Authorization": f"AidLogin {body.android_id}:{body.security_token}",
             **kwargs.pop('headers', {})
         }
-
-        print(headers)
-        print(
-            body.json_body.model_dump(by_alias=True)
-        )
 
         httpx_response: curl_cffi.requests.Response = await self._http_client.post(
             url=FireBasedSettings.register_gcm_url,
