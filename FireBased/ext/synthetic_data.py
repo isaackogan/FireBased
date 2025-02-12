@@ -157,6 +157,9 @@ def generate_imei() -> str:
     return ''.join(map(str, imei_base))
 
 
+# $(BRAND)/$(PRODUCT)/$(DEVICE)/$(BOARD):$(VERSION.RELEASE)/$(ID)/$(VERSION.INCREMENTAL):$(TYPE)/$(TAGS)
+
+
 def create_synthetic_check_in(
         build_override: CheckInRequestMessageCheckInBuild | None = None,
 ) -> CheckInRequestMessage:
@@ -187,16 +190,11 @@ def create_synthetic_check_in(
         "user_serial_number": 0
     }
 
-    message_data = {'imei': '253125236601099', 'android_id': 0, 'locale': 'en', 'logging_id': 2805036932279879224, 'mac_address': ['46463669c9ba'], 'meid': '49805837553036', 'account_cookie': [''], 'time_zone': 'GMT', 'version': 3,
-                    'ota_cert': ['--no-output--'], 'esn': 'Ea870AE2', 'mac_address_type': ['wifi'], 'fragment': 0, 'user_serial_number': 0}
-
     base_message: CheckInRequestMessage = CheckInRequestMessage().from_pydict(message_data)
 
     base_message.check_in = check_in_build_container
     return base_message
 
-
-# $(BRAND)/$(PRODUCT)/$(DEVICE)/$(BOARD):$(VERSION.RELEASE)/$(ID)/$(VERSION.INCREMENTAL):$(TYPE)/$(TAGS)
 
 DEVICE_MANUFACTURER_LIST: list[tuple[str, str]] = [
     ("Galaxy S21", "Samsung"),
