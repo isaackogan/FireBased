@@ -1,6 +1,6 @@
 from urllib.parse import parse_qs
 
-import httpx
+import curl_cffi.requests
 
 from FireBased.client.proto import CheckInRequestMessage, CheckInResponseMessage
 from FireBased.client.schemas import FirebaseInstallationRequestResponse, RegisterInstallRequestBody, RegisterGcmRequestBody, RegisterGcmRequestResponse
@@ -14,7 +14,7 @@ class FireBasedClient:
             self,
             httpx_kwargs: dict[str, str] = None
     ):
-        self._httpx = httpx.AsyncClient(
+        self._http_client = curl_cffi.requests.AsyncSession(
             verify=False,
             **(httpx_kwargs or dict())
         )
@@ -23,13 +23,12 @@ class FireBasedClient:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self._httpx.aclose()
+        await self._http_client.close()
 
     @property
-    def client(self) -> httpx.AsyncClient:
+    def client(self) -> curl_cffi.requests.AsyncSession:
         """HTTP Client instance"""
-
-        return self._httpx
+        return self._http_client
 
     async def check_in(
             self,
@@ -38,14 +37,14 @@ class FireBasedClient:
     ) -> CheckInResponseMessage:
         """Complete check-in with Android & return response"""
 
-        httpx_response: httpx.Response = await self._httpx.post(
+        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
             url=FireBasedSettings.check_in_url,
             headers={**FireBasedSettings.check_in_headers, **kwargs.pop('headers', {})},
-            content=bytes(body),
+            data=bytes(body),
             **kwargs
         )
 
-        return CheckInResponseMessage().parse(httpx_response.read())
+        return CheckInResponseMessage().parse(httpx_response.content)
 
     async def register_install(
             self,
@@ -65,7 +64,7 @@ class FireBasedClient:
         }
 
         # Send request
-        httpx_response: httpx.Response = await self._httpx.post(
+        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
             url=FireBasedSettings.register_install_url.format(appName=body.app_name),
             headers=headers,
             json=body.json_body.model_dump(),
@@ -84,10 +83,15 @@ class FireBasedClient:
             **kwargs.pop('headers', {})
         }
 
-        httpx_response: httpx.Response = await self._httpx.post(
+        print(headers)
+        print(
+            body.json_body.model_dump(by_alias=True)
+        )
+
+        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
             url=FireBasedSettings.register_gcm_url,
             headers=headers,
-            data=body.json_body.model_dump(by_alias=True),  # Must be data so that it is urlencoded, NOT JSON.
+            data=body.json_body.model_dump(by_alias=True),  # Must be data so that it uses the aliases when encoding to JSON
             **kwargs
         )
 

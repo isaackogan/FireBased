@@ -6,6 +6,12 @@ With just the teeniest bit of extra work, you can hook this up like
 someone did in [Push-Server](https://github.com/lastrise/Push-Server) to a
 REST API and have a full-fledged push notification server.
 
+## Privacy Notice
+
+Note that App developers CANNOT see the device you used to register with. 
+Therefore, the device you register the FCM token with does not need to match the device you actually use the token with.
+However, once you associated an FCM token with a given device, at this point, the app developer CAN save that association.
+
 ## Note From The Creator
 
 If you are using this, you are a developer. You know what you are doing.
@@ -82,6 +88,8 @@ if __name__ == '__main__':
     gcm_token: str = asyncio.run(generate_gcm_token())
     print(f"Generated GCM token: {gcm_token}")
 ```
+
+Latest pertinent data is found at `https://github.com/firebase/firebase-js-sdk`
 
 ## Contributors
 
