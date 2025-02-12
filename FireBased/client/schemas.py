@@ -72,6 +72,7 @@ class RegisterGcmRequestBodyJsonBody(BaseModel):
 
 class RegisterGcmRequestBody(BaseModel):
     json_body: RegisterGcmRequestBodyJsonBody
+    user_agent: str
 
     # Via Check-in
     android_id: str
@@ -91,7 +92,8 @@ class RegisterGcmRequestBody(BaseModel):
                 check_in_request_response=check_in_request_response
             ),
             android_id=str(check_in_request_response.android_id),
-            security_token=str(check_in_request_response.security_token)
+            security_token=str(check_in_request_response.security_token),
+            user_agent=install_request_body.user_agent
         )
 
 

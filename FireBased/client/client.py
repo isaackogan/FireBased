@@ -1,3 +1,4 @@
+from typing import Any
 from urllib.parse import parse_qs
 
 import curl_cffi.requests
@@ -12,7 +13,7 @@ class FireBasedClient:
 
     def __init__(
             self,
-            curl_cffi_kwargs: dict[str, str] = None,
+            curl_cffi_kwargs: dict[str, Any] = None,
             curl_cffi_client: curl_cffi.requests.AsyncSession = None
     ):
         curl_cffi_kwargs = curl_cffi_kwargs or dict()
@@ -85,6 +86,7 @@ class FireBasedClient:
     ) -> RegisterGcmRequestResponse:
         headers: dict = {
             "Authorization": f"AidLogin {body.android_id}:{body.security_token}",
+            "User-Agent": body.user_agent,
             **kwargs.pop('headers', {})
         }
 
