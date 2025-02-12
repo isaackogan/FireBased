@@ -6,6 +6,8 @@ from FireBased.client.proto import CheckInRequestMessageCheckInBuild, CheckInReq
 
 
 class BuildDetail(TypedDict):
+
+    # $(BRAND)/$(PRODUCT)/$(DEVICE)/$(BOARD):$(VERSION.RELEASE)/$(ID)/$(VERSION.INCREMENTAL):$(TYPE)/$(TAGS)
     fingerprint: str
     hardware: str
     brand: str
@@ -157,7 +159,6 @@ def generate_imei() -> str:
     return ''.join(map(str, imei_base))
 
 
-# $(BRAND)/$(PRODUCT)/$(DEVICE)/$(BOARD):$(VERSION.RELEASE)/$(ID)/$(VERSION.INCREMENTAL):$(TYPE)/$(TAGS)
 
 
 def create_synthetic_check_in(

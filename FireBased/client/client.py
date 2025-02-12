@@ -12,11 +12,13 @@ class FireBasedClient:
 
     def __init__(
             self,
-            httpx_kwargs: dict[str, str] = None
+            curl_cffi_kwargs: dict[str, str] = None
     ):
+        curl_cffi_kwargs = curl_cffi_kwargs or dict()
         self._http_client = curl_cffi.requests.AsyncSession(
             verify=False,
-            **(httpx_kwargs or dict())
+            ja3=curl_cffi_kwargs.pop('ja3', FireBasedSettings.http_client_ja3),
+            **(curl_cffi_kwargs or dict())
         )
 
     async def __aenter__(self):
