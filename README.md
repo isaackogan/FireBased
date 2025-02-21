@@ -18,7 +18,7 @@ If you are using this, you are a developer. You know what you are doing.
 I am not responsible for any misuse of this software.
 I am not responsible for any bans or other actions taken against accounts using this software.
 
-If you are hiring, e-mail `isaacikogan@gmail.com`. Let's chat :)!
+If you are hiring, e-mail `isaacikogan@gmail.com`. Let's chat :)! If not, say hi anwyways!
 
 ## Helpful Tips
 
