@@ -10,15 +10,15 @@ REST API and have a full-fledged push notification server.
 
 Note that App developers CANNOT see the device you used to register with. 
 Therefore, the device you register the FCM token with does not need to match the device you actually use the token with.
-However, once you associated an FCM token with a given device, at this point, the app developer CAN save that association.
+However, once you have associated an FCM token with a given device, at this point, the app developer CAN save that association.
 
 ## Note From The Creator
 
 If you are using this, you are a developer. You know what you are doing.
 I am not responsible for any misuse of this software.
-I am not responsible for any bans or other actions taken against your account.
+I am not responsible for any bans or other actions taken against accounts using this software.
 
-If you are hiring, e-mail `isaacikogan@gmail.com`. Let's chat :)!
+If you are hiring, e-mail `isaacikogan@gmail.com`. Let's chat :)! If not, say hi anwyways!
 
 ## Helpful Tips
 
@@ -101,4 +101,4 @@ this project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
