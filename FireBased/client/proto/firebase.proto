@@ -1,3 +1,5 @@
+// Updated thanks to work from https://github.com/mxrch/ghunt-v3, thanks a lot to him <3
+
 syntax = "proto3";
 
 message CheckInRequestMessage {
@@ -67,6 +69,13 @@ message CheckInRequestMessage {
         repeated string gl_extension = 15;
         int32 device_class = 16;
         int32 max_apk_download_size_mb = 17;
+
+        message FeatureVersion {
+            string name = 1;
+            int32 version = 2;
+        }
+
+        repeated FeatureVersion feature_version = 26;
     }
 
     string imei = 1;
@@ -128,5 +137,3 @@ message CheckInResponseMessage {
     string version_info = 11;
     string device_data_version_info = 12;
 }
-
-
