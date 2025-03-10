@@ -4,7 +4,7 @@ manifest: dict = {
     "name": "FireBased",
     "license": "MIT",
     "author": "Tricorder",
-    "version": "0.0.2.post5",
+    "version": "0.0.3.post2",
     "email": "tricorder@isaackogan.com"
 }
 

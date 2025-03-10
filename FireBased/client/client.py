@@ -24,7 +24,7 @@ class FireBasedClient:
 
         self._http_session_external: AsyncSession | None = curl_cffi_client
         self._http_session: AsyncSession | None = curl_cffi_client or None
-        self._http_session_kwargs: dict[str, Any] = curl_cffi_kwargs
+        self._http_session_kwargs: dict[str, Any] = curl_cffi_kwargs or dict()
 
     async def __aenter__(self) -> FireBasedClient:
         """
@@ -41,6 +41,9 @@ class FireBasedClient:
             **(self._http_session_kwargs or dict())
         )
 
+        if self._http_session_external:
+            self._http_session.cookies.clear()
+
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -48,6 +51,10 @@ class FireBasedClient:
 
         if not self._http_session_external:
             await self._http_session.close()
+
+        # Clear cookies
+        if self._http_session_external:
+            self._http_session.cookies.clear()
 
         self._http_session = None
 
@@ -125,4 +132,4 @@ class FireBasedClient:
         )
 
         # Parse the response & return it
-        return RegisterGcmRequestResponse(**{k.lower(): v for k, v in parse_qs(httpx_response.text).items()})
+        return RegisterGcmRequestResponse(**{k.lower(): v[0] for k, v in parse_qs(httpx_response.text).items()})
