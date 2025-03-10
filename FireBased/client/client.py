@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from typing import Any
 from urllib.parse import parse_qs
 
 import curl_cffi.requests
+from curl_cffi.requests import AsyncSession
 
 from FireBased.client.proto import CheckInRequestMessage, CheckInResponseMessage
 from FireBased.client.schemas import FirebaseInstallationRequestResponse, RegisterInstallRequestBody, RegisterGcmRequestBody, RegisterGcmRequestResponse
@@ -16,86 +19,110 @@ class FireBasedClient:
             curl_cffi_kwargs: dict[str, Any] = None,
             curl_cffi_client: curl_cffi.requests.AsyncSession = None
     ):
-        curl_cffi_kwargs = curl_cffi_kwargs or dict()
-        self._provided_client: bool = bool(curl_cffi_client)
-        self._http_client = curl_cffi_client or curl_cffi.requests.AsyncSession(
+        # Ensure that the client is not supplied when kwargs are supplied & vice versa
+        assert not (curl_cffi_kwargs and curl_cffi_client), "Cannot supply both initialization kwargs and a client"
+
+        self._http_session_external: AsyncSession | None = curl_cffi_client
+        self._http_session: AsyncSession | None = curl_cffi_client or None
+        self._http_session_kwargs: dict[str, Any] = curl_cffi_kwargs
+
+    async def __aenter__(self) -> FireBasedClient:
+        """
+        Enter the context manager & create the HTTP client
+
+        :return: The HTTP client instance
+
+        """
+
+        # Supply the client when entering the context manager
+        self._http_session = self._http_session_external or curl_cffi.requests.AsyncSession(
             verify=False,
-            ja3=curl_cffi_kwargs.pop('ja3', FireBasedSettings.http_client_ja3),
-            **(curl_cffi_kwargs or dict())
+            ja3=self._http_session_kwargs.pop('ja3', FireBasedSettings.http_client_ja3),
+            **(self._http_session_kwargs or dict())
         )
 
-    async def __aenter__(self):
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if not self._provided_client:
-            await self._http_client.close()
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Close the HTTP client when exiting the context manager"""
 
-    @property
-    def client(self) -> curl_cffi.requests.AsyncSession:
-        """HTTP Client instance"""
-        return self._http_client
+        if not self._http_session_external:
+            await self._http_session.close()
+
+        self._http_session = None
 
     async def check_in(
             self,
-            body: CheckInRequestMessage,
-            **kwargs
+            body: CheckInRequestMessage
     ) -> CheckInResponseMessage:
-        """Complete check-in with Android & return response"""
+        """
+        Complete the Firebase Google Checkin
 
-        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
+        :param body: The checkin request body
+        :return: The checkin response
+
+        """
+
+        httpx_response: curl_cffi.requests.Response = await self._http_session.post(
             url=FireBasedSettings.check_in_url,
-            headers={**FireBasedSettings.check_in_headers, **kwargs.pop('headers', {})},
-            data=bytes(body),
-            **kwargs
+            headers=FireBasedSettings.check_in_headers,
+            data=bytes(body)
         )
 
         return CheckInResponseMessage().parse(httpx_response.content)
 
     async def register_install(
             self,
-            body: RegisterInstallRequestBody,
-            **kwargs
+            body: RegisterInstallRequestBody
     ) -> FirebaseInstallationRequestResponse:
-        """Register the installation with Firebase"""
+        """
+        Register the installation of an app with Firebase
 
-        # Create headers
-        headers: dict = {
+        :param body: The installation request body
+        :return: The installation response
+
+        """
+
+        included_headers: dict = {
             "user-agent": body.user_agent,
-            **FireBasedSettings.register_install_headers,
-            **kwargs.pop('headers', {}),
             'x-goog-api-key': body.app_public_key,
             'x-android-package': body.app_package,
-            'x-android-cert': body.app_cert
+            'x-android-cert': body.app_cert,
+            **FireBasedSettings.register_install_headers
         }
 
-        # Send request
-        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
+        httpx_response: curl_cffi.requests.Response = await self._http_session.post(
             url=FireBasedSettings.register_install_url.format(appName=body.app_name),
-            headers=headers,
-            json=body.json_body.model_dump(),
-            **kwargs
+            headers=included_headers,
+            json=body.json_body.model_dump()
         )
 
         return FirebaseInstallationRequestResponse(**httpx_response.json())
 
     async def register_gcm(
             self,
-            body: RegisterGcmRequestBody,
-            **kwargs
+            body: RegisterGcmRequestBody
     ) -> RegisterGcmRequestResponse:
-        headers: dict = {
+        """
+        Register the GCM token with Firebase
+
+        :param body:  The GCM registration request body
+        :return: The GCM registration response
+
+        """
+
+        included_headers: dict = {
             "Authorization": f"AidLogin {body.android_id}:{body.security_token}",
-            "User-Agent": body.user_agent,
-            **kwargs.pop('headers', {})
+            "User-Agent": body.user_agent
         }
 
-        httpx_response: curl_cffi.requests.Response = await self._http_client.post(
+        httpx_response: curl_cffi.requests.Response = await self._http_session.post(
             url=FireBasedSettings.register_gcm_url,
-            headers=headers,
-            data=body.json_body.model_dump(by_alias=True),  # Must be data so that it uses the aliases when encoding to JSON
-            **kwargs
+            headers=included_headers,
+
+            # Must be data so that it uses the aliases when encoding to JSON
+            data=body.json_body.model_dump(by_alias=True)
         )
 
-        parsed_data = parse_qs(httpx_response.text)
-        return RegisterGcmRequestResponse(**{key.lower(): value[0] for key, value in parsed_data.items()})
+        # Parse the response & return it
+        return RegisterGcmRequestResponse(**{k.lower(): v for k, v in parse_qs(httpx_response.text).items()})
