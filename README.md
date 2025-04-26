@@ -77,7 +77,8 @@ async def generate_gcm_token() -> str:
             body=RegisterGcmRequestBody.from_models(
                 install_request_body=register_install_payload,
                 install_request_response=install_data,
-                check_in_request_response=check_in_response
+                check_in_request_response=check_in_response,
+                check_in_request_body=check_in_payload,
             )
         )
 
